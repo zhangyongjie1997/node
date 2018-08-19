@@ -1,0 +1,191 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    /* @keyframes run {
+     from {transform: rotate  (0)}
+     to {transform: rotate(360deg)}
+    } */
+
+    .container {
+      margin: 150px auto;
+      width: 100px;
+      height: 100px;
+      background-color: #f66;
+      /* animation: infinite run .5s; */
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .a {
+      overflow: hidden;
+      width: 200px;
+      height: 120px;
+      background-color: #fbb;
+    }
+
+    .b {
+      margin-top: 100px;
+      width: 30px;
+      height: 30px;
+      background-color: #f66;
+    }
+
+    .e {
+      border: 2px #000 solid;
+      width: 30px;
+      height: 30px;
+      background-color: #f66;
+    }
+
+    .c {
+      background: #000;
+      display: inline-block;
+      width: 50px;
+      height: 100px;
+    }
+
+    .d {
+      background: #fff;
+      display: inline-block;
+      width: 50px;
+      height: 100px;
+    }
+
+    .border {
+      width: 100px;
+      height: 100px;
+      background-color: rgb(255, 151, 81);
+      transition: all .5s linear;
+      position: relative;
+    }
+
+    .border>div {
+      bottom: 0;
+      height: 1px;
+      background-color: #000;
+      width: 0;
+      transition: all 0.3s linear;
+      margin: 0 auto;
+    }
+
+    .border:hover>div {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <ul id="ul" class="ul">
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+    <li>4</li>
+    <li>5</li>
+    <li>6</li>
+    <li>7</li>
+    <li>8</li>
+    <li>9</li>
+    <li>10</li>
+  </ul>
+  <div id="click" class="a">
+    <div class="b"></div>
+  </div>
+  <div id="main" class="container">
+    <div class="c"></div>
+    <div class="d"></div>
+  </div>
+  <button id="btn">click</button>
+  <div class="border">
+    <div></div>
+  </div>
+  <script>
+    document.getElementById('click').addEventListener('click',function(){alert(2)},false)
+    let ul = document.getElementById('ul');
+    ul.addEventListener('click', click, false)
+    document.getElementById('click').onclick = function click(){
+      alert(0)
+      console.log(this);
+    }
+
+    function click(e) {
+      let arr = Array.prototype.slice.call(e.target.parentNode.children)
+      console.log(e);
+
+    }
+    var btn = document.getElementById('btn');
+    var main = document.getElementById('main');
+    console.log(main.style);
+    var timer = null;
+    var start = 0;
+    var isRun = false;
+    btn.onclick = function () {
+      console.log(this);
+      
+      if (isRun) {
+        isRun = false;
+        clearInterval(timer);
+        return;
+      }
+      isRun = true;
+      timer = setInterval(function () {
+        start += 5;
+        main.style.transform = 'rotate(' + start + 'deg)';
+        if (start >= 355) {
+          start = 0;
+        }
+      }, 13);
+    }
+    // setTimeout(function () {
+    //   console.log(111);
+    //   setTimeout(arguments.callee, 500)
+    // }, 100)
+
+    // function run() {
+    //   var div = document.getElementsByTagName('div')[0]
+    //   for (let i = 0xA00000; i < 0xA00222; i++) {
+    //     setTimeout(function () {
+    //       div.style.backgroundColor = '#' + i.toString(16)
+    //       console.log(i);
+    //     }, i / 10000)
+    //   }
+    // }
+    // run();
+    function a(){
+      console.log(this);
+      function b(){
+        console.log(this,a);
+      }
+      b()
+    }
+    a()
+  </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script>
+    let sock = io.connect('ws://localhost:3000');
+    document.onclick = function(){
+      sock.emit('from client',12,5);
+    }
+        sock.on('from server',function(a,b){
+          console.log('from server',a,b);
+          
+        })
+  </script>
+</body>
+</html>
