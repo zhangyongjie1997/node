@@ -183,7 +183,11 @@ server.listen(3000, function () {
 ## 读写文件  fs模块
 ```js
 let fs = require('fs')
-fs.readFile('url',function(err,data){
+//此处的路径并不是相对于当前文件的相对路径，而是相对于执行执行node命令的终端(cmd)所处的路径
+//因此最好将路径通过path.join(__dirname,'path')转化成绝对路径
+//__dirname,__filename不受执行node命令的终端所处的路径影响
+//require('path')中的路径不受影响，模块中的路径标识就是相对于当前文件路径，不受执行node命令的终端所处的路径影响
+fs.readFile('./a.txt','utf8',function(err,data){
   if(err){
 
   }else{}
@@ -240,7 +244,7 @@ fs.writeFile(path.join(__dirname, 'url'),JSON.stringify(data),callback);
     读取目录;
     //使用fs.readdir读取目录，重点其回调函数中files对象
     //fs.readdir(path, callback);
-
+    
     /**
     * path, 要读取目录的完整路径及目录名；
     * [callback(err, files)], 读完目录回调函数；err错误对象，files数组，存放读取到的目录中的所有文件名
@@ -254,12 +258,12 @@ fs.writeFile(path.join(__dirname, 'url'),JSON.stringify(data),callback);
     * path, 要查看目录/文件的完整路径及名；
     * [callback(exists)], 操作完成回调函数；exists true存在，false表示不存在
     */
-
+    
     fs.exists(__dirname + '/te', function (exists) {
       var retTxt = exists ? retTxt = '文件存在' : '文件不存在';
       console.log(retTxt);
     });
-
+    
     ```
 ## path 路径模块
 - path.join
@@ -300,6 +304,77 @@ TypeError: Arguments to path.join must be strings'
 
     '/home/itbilu/node/wwwroot/static_files/gif/image.gif'
 
+```
+
+
+- path.basename(path)  获取路径下的文件名
+
+```shell
+> path.basename('c:/a/b/c/index.js')
+'index.js'
+> path.basename('c:/a/b/c/index.js','.js')  # 第二个参数表示去掉某一后缀名
+'index'
+> path.basename('c:/a/b/c/index.js','.html')
+'index.js'
+```
+
+  
+
+- path.dirname(path)  获取路径中的目录部分
+
+```shell
+> path.dirname('c:/a/b/c/index.js')
+'c:/a/b/c'
+```
+
+  
+
+- path.extname(path)  获取扩展名
+
+```shell
+> path.extname('c:/a/b/c/index.js')
+'.js'
+```
+
+  
+
+- path.isAbsolute(path)
+
+```shell
+> path.isAbsolute('c:/a/b/c/index.js')
+true
+> path.isAbsolute('a/b/c/index.js')
+false
+> path.isAbsolute('./a/b/c/index.js')
+false
+> path.isAbsolute('/a/b/c/index.js')
+true
+```
+
+- path.parse(path) 将路径解析成对象
+
+```shell
+> path.parse('c:/a/b/c/index.js')
+{
+    root:'c:/',
+    dir:'c:/a/b/c',
+    base:'index.js',
+    ext:'.js',
+    name:'index'
+}
+```
+
+- path.join(path,path)
+  - 标准化路径，使用当前操作系统的路径分隔符,windows-\,macos-/
+  - 将传入的多个路径拼接成一个路径
+
+```shell
+> path.join('c:/a/','/b')
+'c:\\a\\b'
+> path.join('c:/a/','b')
+'c:\\a\\b'
+> path.join('c:/a','b')
+'c:\\a\\b'
 ```
 ## http-content-type
 ```js
@@ -388,10 +463,251 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-ap.get('url',function(req,res){})  //处理get请求
+ap.get('url',function(req,res){
+    res.status(200).json({xx:xx})  //响应添加状态码并返回json数据
+})  //处理get请求
 app.use(router){})//根据请求路径处理业务  路由
 app.listen(3000,function(){})
+
+//服务端重定向只对同步请求有效，异步无效，需要客户端来做重定向
 ```
+
+
+## session保存登录状态 express-session
+
+express默认不支持cookie和session，需要使用第三方中间件 express-session
+
+1. 安装 `npm i express-session`
+2. 引入`let session = require('express-session')`
+3. 配置
+
+```js
+let express = require('express')
+let session = require('express-session')
+let app = express()
+app.use(session({    //在app.use(router)之前
+  secret: 'keyboard cat',   //加密字符串 提高安全性，在原有加密的基础上加上
+  resave: false,
+  saveUninitialized: true   //无论是否使用session我都默认给你分配一把钥匙，false则需要服务端手动给
+}))//配置好之后就可以通过req.session来访问和设置session成员
+//默认服务器会把session储存在内存中，服务器关闭session就会消失，真正的生产环境会持久化储存session
+app.use('/register',function(req,res){
+    //...
+    //注册成功后，添加session
+    req.session.isRegister = true;
+})
+//读取session
+app.use('/index',function(req,res){
+    req.session;  //true
+})
+```
+
+## express常用方法/属性
+
+
+
+- req.get(header)获取指定的http请求头部字段
+
+- req.query(),req.body()获取请求参数/请求体
+
+- req.app 使用中间件的应用的实例，上面的app
+
+- req.body()使用body-parser后，可以获得请求正文对象
+
+- req.cookies()使用cookie-parser后，可以获得请求传来的cookie对象
+
+- req.fresh请求是否
+
+- req.hostname 请求主机名
+
+- res.append()追加响应头
+
+- res.cookie(name,value,[options])设置cookie
+
+- res.download(path,filename,callback) 响应文件，浏览器会提示用户下载
+
+- res.json()响应json数据
+
+- res.jsonp()响应jsonp
+
+- res.get(header)获取指定的响应头
+
+- res.end()快速结束响应
+
+- res.send()响应数据
+
+- res.location响应的location   - 重定向等
+
+- res.redirct(状态码，路径)使用指定的状态码重定向到指定的路径，默认302
+
+- res.render(viewname,data,callback)
+
+  - ```js
+    //默认去当前目录下的views文件加查找视图文件
+    res.render('user', { name: 'Tobi' }, function(err, html) {
+      // ...
+    });
+    ```
+
+- res.send(data)发送数据响应
+
+  - ```js
+    //数据可以是Buffer对象，一个String，对象，或一个Array，自动分配Content-Type
+    res.send(new Buffer('whoop'));
+    res.send({ some: 'json' });
+    res.send('<p>some html</p>');
+    res.status(404).send('Sorry, we cannot find that!');
+    res.status(500).send({ error: 'something blew up' });
+    ```
+
+- res.status()设置响应状态码
+
+- res.set()设置响应头字段
+
+
+
+## express中间件
+
+> **中间件：本质是一个函数，处理请求用的，可以有多个**
+>
+> **中间件匹配是从上向下的，一旦被捕获就不会向下传播，除非使用next**
+
+- 不关心请求路径和请求方法的中间件，也就是说任何请求都会进入这个中间件
+
+```js
+let express = require('express')
+let app = express()
+app.use(function(req,res){   //所有请求都会进入这个中间件
+    
+})
+app.listen(3000,function(){})
+```
+
+- 中间件本身是一个函数，接收三个参数
+  1. request 请求对象
+  2. response 相应对象
+  3. next 下一个中间件 
+- 当请求被一个中间件捕获到之后，就不会在向下传播，停留在当前中间件
+
+```js
+app.use(function(req,res,next){
+    console.log(1)
+})
+app.use(function(req,res,next){
+    console.log(2)
+})
+
+//在浏览器发出请求之后，只会输出1
+```
+
+- next的用法，将被当前中间件捕获的请求向下传播直到被捕获
+
+```js
+app.use(function(req,res,next){
+    console.log(1);
+    next();
+})
+app.use(function(req,res,next){
+    console.log(2);
+})
+app.use(function(req,res,next){
+    console.log(3);
+})
+//在浏览器发出请求之后输出1，2
+```
+
+- 关心请求路径的中间件，以/xxx开头的中间件
+
+```js
+app.use('/a',function(req,res,next){
+    console.log(2);
+})
+//这个中间件会捕获/a开头的请求
+//    localhost:3000/a/xxx/xxx   req.url ->  /xxx/xxx
+//    localhost:3000/a/b/c       req.url ->  /b/c 
+//    localhost:3000/a	  		req.url ->  /
+```
+
+- next的理解
+
+```js
+app.use(function(req,res,next){
+    console.log(1);
+    next();
+})
+app.use('/a',function(req,res,next){
+    console.log(2);
+})
+app.use('/b',function(req,res,next){
+    console.log(3);
+})
+app.use(function(req,res,next){
+    console.log(4);
+    next()
+})
+app.use('/',function(req,res,next){
+    console.log(5);
+})
+//请求  localhost:3000/b  输出1，3
+//请求  localhost:3000    输出1，4，5
+```
+
+
+
+- 严格比配请求路径和请求方法的中间件
+
+```js
+app.get()
+app.post()
+app.delete()
+```
+
+- 如果同一个请求经过可多个中间件，这些中间件获得的请求对象都是同一个，可以在中间添加属性
+
+```js
+app.use(function(req,res,next){
+    console.log(1);
+    req.body = {a:1}
+    next();
+})
+app.use(function(req,res,next){
+    console.log(req.body);
+})
+// 请求  localhost:3000   输出1，{a:1}
+```
+
+- 配置处理404 的中间件
+
+```js
+//写在所有路由的最后，当所有中间件都不能匹配的时候，进入404
+app.use(function(req,res,next){
+    res.render('404.html')
+})
+```
+
+- 错误处理
+
+```js
+app.get('/a',function(req,res,next){
+    fs.readFile('./a/a',function(err,data){
+        if(err){
+            next(err);   
+            //如果在next中传递了参数，就会直接跳转到错误处理中间件，就是接收四个参数的app.use
+        }else{
+            
+        }
+    })
+})
+//接收错误的中间件
+app.use(function(err,req,res,next){
+    
+})
+```
+
+
+
+- 如果所有中间件都不匹配Express默认输出Cannot GET 路径
+
 ## express-crud
 
 - 起步
@@ -561,4 +877,18 @@ kitty.save().then((err) =>{
     }
 });
 ```
+
+
+
+# node中的其他成员
+
+在每个模块中，除了`require`，`exports`,等模块相关API之外，还有两个特殊成员
+
+>  //__dirname,__filename不受执行node命令的终端所处的路径影响
+
+- `__dirname`可以用来获取当前文件所属目录的绝对路径
+
+
+
+- `__filename`可以用来获取当前文件的绝对路径
 
